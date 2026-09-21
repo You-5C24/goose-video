@@ -9,7 +9,9 @@
     "@remotion/cli": "4.0.526",
     "@remotion/google-fonts": "^4.0.526",
     "@remotion/layout-utils": "^4.0.526",
+    "@remotion/media-utils": "^4.0.526",
     "@remotion/tailwind-v4": "4.0.526",
+    "@remotion/transitions": "4.0.526",
     "@remotion/zod-types": "4.0.526",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -23,6 +25,7 @@
     "@types/web": "0.0.166",
     "eslint": "9.19.0",
     "prettier": "3.8.1",
+    "sharp": "^0.35.4",
     "typescript": "5.9.3"
   },
   "scripts": {
