@@ -20,8 +20,9 @@ export const RemotionRoot: React.FC = () => (
     />
 
     {/*
-      每个动作一个预览 Composition（Action-idle、Action-jump …），
-      时长 = 两个周期，方便在 studio 里单独调参、同时检查循环接缝是否平滑。
+      每个动作一个预览 Composition（Action-idle、Action-jump …）。
+      可循环动作时长 = 两个周期，方便调参并检查接缝；
+      loopable === false 的一次性动作只播一个周期，避免预览后半段瞬移回起点。
     */}
     {ACTION_NAMES.map((name) => (
       <Composition
@@ -32,7 +33,9 @@ export const RemotionRoot: React.FC = () => (
         width={CANVAS.width}
         height={CANVAS.height}
         fps={FPS}
-        durationInFrames={ACTIONS[name].duration * 2}
+        durationInFrames={
+          ACTIONS[name].duration * (ACTIONS[name].loopable === false ? 1 : 2)
+        }
       />
     ))}
   </>

@@ -35,11 +35,13 @@ export type ChannelTracks = Partial<Record<Channel, Track>>;
  * - duration：周期帧数，播放时按 frame % duration 循环。
  * - root：整只鹅一起动（跳跃位移、squash / stretch）。
  * - parts：各部件自己的轨道。
+ * - loopable：缺省为可循环。false 表示该动作不能无缝循环，用于单向位移试验。
  */
 export type ActionDef = {
   duration: number;
   root?: ChannelTracks;
   parts?: Partial<Record<Part, ChannelTracks>>;
+  loopable?: boolean;
 };
 
 /** 采样结果：一层的完整变换。 */
@@ -185,6 +187,7 @@ export const mirror = (track: Track): Track =>
  * - 帧号严格递增
  * - 首帧 frame = 0，末帧 frame = duration
  * - 首值 = 末值（否则 frame % duration 回绕时会跳）
+ * loopable === false 时跳过「首值必须等于末值」，其余检查不变。
  * 在 actions.ts 模块加载时调用，写错立刻抛错，不进渲染。
  */
 export const assertLoopable = (name: string, def: ActionDef): void => {
@@ -201,7 +204,7 @@ export const assertLoopable = (name: string, def: ActionDef): void => {
     if (last.frame !== def.duration) {
       throw new Error(`${where}: 末帧 frame 必须等于 duration (${def.duration})`);
     }
-    if (track[0].value !== last.value) {
+    if (def.loopable !== false && track[0].value !== last.value) {
       throw new Error(`${where}: 首值 (${track[0].value}) 必须等于末值 (${last.value})，否则循环会跳`);
     }
   };

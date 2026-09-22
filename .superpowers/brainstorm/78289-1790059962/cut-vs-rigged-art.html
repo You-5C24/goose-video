@@ -1,0 +1,42 @@
+<h2>“从母图抠层”与“动画原画分层”的区别</h2>
+<p class="subtitle">外观静止时可能相同，部件旋转后才会暴露结构差异</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前方式：只保留母图中可见的像素</div>
+    <div class="mockup-body" style="padding:28px;text-align:center">
+      <svg viewBox="0 0 300 260" style="width:100%;max-height:280px">
+        <path
+          d="M83 103 Q52 141 56 208 Q58 244 150 245 Q242 244 244 208 Q248 141 217 103 L190 103 L190 134 Q150 119 110 134 L110 103 Z"
+          fill="#fff" stroke="#333" stroke-width="5" />
+        <path d="M108 103 L108 40 Q108 20 150 20 Q192 20 192 40 L192 103 Q150 89 108 103 Z" fill="#fff" stroke="#e95d68"
+          stroke-width="6" />
+        <path d="M80 120 Q36 147 64 210 L110 174 L110 132 Z" fill="#fff" stroke="#5b8def" stroke-width="6" />
+        <path d="M220 120 Q264 147 236 210 L190 174 L190 132 Z" fill="#fff" stroke="#5b8def" stroke-width="6" />
+        <path d="M107 103 L193 103" stroke="#e95d68" stroke-width="7" stroke-dasharray="10 7" />
+        <text x="150" y="255" text-anchor="middle" fill="#b43d48" font-size="15">头移开后：身体顶部是空洞/切口</text>
+      </svg>
+      <p>每层只是母图的一块拼图；关节下面没有任何隐藏内容。</p>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">动画原画：每个部件都是完整形状</div>
+    <div class="mockup-body" style="padding:28px;text-align:center">
+      <svg viewBox="0 0 300 260" style="width:100%;max-height:280px">
+        <ellipse cx="150" cy="169" rx="96" ry="78" fill="#dfe9ff" stroke="#5b8def" stroke-width="5" />
+        <ellipse cx="150" cy="161" rx="83" ry="70" fill="#fff" stroke="#333" stroke-width="5" />
+        <rect x="107" y="18" width="86" height="128" rx="40" fill="#fff" stroke="#e95d68" stroke-width="6" />
+        <path d="M76 112 Q30 145 61 216 Q96 203 119 161 L119 124 Z" fill="#fff" stroke="#5b8def" stroke-width="6" />
+        <path d="M224 112 Q270 145 239 216 Q204 203 181 161 L181 124 Z" fill="#fff" stroke="#5b8def" stroke-width="6" />
+        <path d="M108 126 Q150 147 192 126" fill="none" stroke="#72b77e" stroke-width="6" stroke-dasharray="10 7" />
+        <text x="150" y="255" text-anchor="middle" fill="#368946" font-size="15">头移开后：下方仍有完整躯干和重叠区</text>
+      </svg>
+      <p>头、身体和翅膀分别完整绘制，并在关节处留出足够重叠。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p><strong>因此可行的 AI 辅助路线不是“抠图”，而是：</strong>AI 确定统一角色设计，再对身体、头颈、双翅、上下喙分别补画完整轮廓；关节遮挡区需要重绘或局部生成。</p>
+</div>

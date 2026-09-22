@@ -260,6 +260,71 @@ const jump: ActionDef = {
   },
 };
 
+/**
+ * waddle —— 单向晃动走（120 帧）
+ * 从画面偏左平移到偏右；晃是身体左右倾 + 轻微起伏，不是迈步。
+ * 单向净位移，所以 loopable: false，不能无缝循环。
+ */
+const waddleWing: Track = [
+  k(0, 0),
+  k(15, 8, "out"),
+  k(30, 0, "in"),
+  k(45, 8, "out"),
+  k(60, 0, "in"),
+  k(75, 8, "out"),
+  k(90, 0, "in"),
+  k(105, 8, "out"),
+  k(120, 0, "in"),
+];
+const waddle: ActionDef = {
+  duration: 120,
+  loopable: false,
+  root: {
+    x: [k(0, -360), k(120, 360, "linear")],
+    y: [
+      k(0, 0),
+      k(15, 8, "in"),
+      k(30, 0, "out"),
+      k(45, 8, "in"),
+      k(60, 0, "out"),
+      k(75, 8, "in"),
+      k(90, 0, "out"),
+      k(105, 8, "in"),
+      k(120, 0, "out"),
+    ],
+  },
+  parts: {
+    body: {
+      rotate: [
+        k(0, 0),
+        k(15, -8),
+        k(30, 0),
+        k(45, 8),
+        k(60, 0),
+        k(75, -8),
+        k(90, 0),
+        k(105, 8),
+        k(120, 0),
+      ],
+    },
+    head: {
+      rotate: [
+        k(0, 0),
+        k(15, 4),
+        k(30, 0),
+        k(45, -4),
+        k(60, 0),
+        k(75, 4),
+        k(90, 0),
+        k(105, -4),
+        k(120, 0),
+      ],
+    },
+    leftWing: { rotate: waddleWing },
+    rightWing: { rotate: mirror(waddleWing) },
+  },
+};
+
 // ─────────────────────────── 导出 ───────────────────────────
 
 /**
@@ -273,6 +338,7 @@ export const ACTIONS = {
   shakeHead,
   dance,
   jump,
+  waddle,
 } satisfies Record<string, ActionDef>;
 
 export type ActionName = keyof typeof ACTIONS;
