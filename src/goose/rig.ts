@@ -80,6 +80,15 @@ export const DRAG: Record<Part, number> = {
 };
 
 /**
+ * 残影（只对 ActionDef.trail = true 的动作生效）：
+ * - count：最多叠几层残影；step：相邻残影隔几帧取姿态。
+ * - opacity：最近一层残影的不透明度，往后线性递减。
+ * - fullAt：残影与本体水平相距多少像素时达到该层满不透明度；距离越小越淡，
+ *   所以停稳后残影自然消失，动作里不需要手动开关。
+ */
+export const TRAIL = { count: 3, step: 2, opacity: 0.45, fullAt: 80 };
+
+/**
  * 脚底（图内坐标）：整只鹅做 squash / stretch 时的缩放支点。
  * 用脚底而不是图中心，是为了压扁时脚踩在地上不飘。
  * 数值来自 sharp 量出的 alpha 包围盒：x 273~1010（中心 642），y 底边 1149。

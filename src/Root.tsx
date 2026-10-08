@@ -1,9 +1,11 @@
 import React from "react";
 import { Composition } from "remotion";
-import { ShortVideo, totalFrames } from "./ShortVideo";
+import { ShortVideo } from "./ShortVideo";
 import { Goose } from "./goose/Goose";
 import { ACTIONS, ACTION_NAMES } from "./goose/actions";
 import { CANVAS } from "./goose/rig";
+import { storyboardFrames } from "./schema";
+import { shanShenStoryboard, storyboard } from "./storyboard";
 
 const FPS = 30;
 
@@ -13,10 +15,22 @@ export const RemotionRoot: React.FC = () => (
     <Composition
       id="GooseShort"
       component={ShortVideo}
+      defaultProps={{ storyboard }}
       width={CANVAS.width}
       height={CANVAS.height}
       fps={FPS}
-      durationInFrames={totalFrames}
+      durationInFrames={storyboardFrames(storyboard)}
+    />
+
+    {/* 闪身步 30 秒 */}
+    <Composition
+      id="GooseShanShen"
+      component={ShortVideo}
+      defaultProps={{ storyboard: shanShenStoryboard }}
+      width={CANVAS.width}
+      height={CANVAS.height}
+      fps={FPS}
+      durationInFrames={storyboardFrames(shanShenStoryboard)}
     />
 
     {/*

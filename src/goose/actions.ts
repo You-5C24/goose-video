@@ -325,6 +325,117 @@ const waddle: ActionDef = {
   },
 };
 
+/**
+ * groove —— 踩点律动（30 帧 = 两拍，按 120 BPM 每拍 15 帧）
+ * 每拍开头快速下沉压扁（out），拍内慢慢弹回；身体左右各摆一次，头反相，翅膀随拍微张。
+ * 用作闪身步之间的「垫拍」。
+ */
+const grooveWing: Track = [k(0, 0), k(4, 6, "out"), k(15, 0), k(19, 6, "out"), k(30, 0)];
+const groove: ActionDef = {
+  duration: 30,
+  root: {
+    y: [k(0, 0), k(4, 12, "out"), k(15, 0), k(19, 12, "out"), k(30, 0)],
+    scaleX: [k(0, 1), k(4, 1.04, "out"), k(15, 1), k(19, 1.04, "out"), k(30, 1)],
+    scaleY: [k(0, 1), k(4, 0.96, "out"), k(15, 1), k(19, 0.96, "out"), k(30, 1)],
+  },
+  parts: {
+    body: { rotate: [k(0, 0), k(8, -4), k(15, 0), k(23, 4), k(30, 0)] },
+    head: { rotate: [k(0, 0), k(8, 5), k(15, 0), k(23, -5), k(30, 0)] },
+    leftWing: { rotate: grooveWing },
+    rightWing: { rotate: mirror(grooveWing) },
+  },
+};
+
+/**
+ * 闪身步的一拍分四个时间点（相对拍起点的帧）：
+ *   anticipate 反向蓄力（往反方向挪一点、下蹲压扁、身体反向倾）
+ *   arrive     闪到落点并过冲（横向拉长、身体顺着方向猛倾、翅膀甩开）
+ *   settle     收回过冲（轻微回弹）
+ *   beat       拍尾，站稳在落点
+ * 从 anticipate 到 arrive 只有两三帧，配合 trail 残影就是「瞬移」的观感。
+ */
+type FlashTiming = { anticipate: number; arrive: number; settle: number; beat: number };
+
+/** 闪身的横向幅度（px）。竖屏里鹅本身约 740px 宽，再大翅膀尖会出画。 */
+const SHAN = 140;
+/** 落点过冲（px）和反向蓄力（px）。 */
+const SHAN_OVERSHOOT = 16;
+const SHAN_WINDUP = 12;
+/** 停在侧边时身体朝外倾的角度：在左侧往左倾，在右侧往右倾，中间站直。 */
+const SHAN_HOLD_LEAN = 5;
+
+/**
+ * 按落点序列生成一整段闪身步。
+ * path[0] 是起点，之后每个元素是一拍闪到的横向位置；首尾必须相同才能循环。
+ * 每拍的关键帧形状相同，只是方向和落点不同，所以用函数展开而不是手抄几十行。
+ */
+const flashSteps = (path: number[], t: FlashTiming): ActionDef => {
+  const lean = (x: number) => Math.sign(x) * SHAN_HOLD_LEAN;
+  const x: Track = [k(0, path[0])];
+  const y: Track = [k(0, 0)];
+  const scaleX: Track = [k(0, 1)];
+  const scaleY: Track = [k(0, 1)];
+  const body: Track = [k(0, lean(path[0]))];
+  const head: Track = [k(0, 0)];
+  const wing: Track = [k(0, 0)];
+
+  for (let i = 1; i < path.length; i++) {
+    const from = path[i - 1];
+    const to = path[i];
+    const dir = Math.sign(to - from);
+    const s = (i - 1) * t.beat;
+    const [a, b, c, e] = [s + t.anticipate, s + t.arrive, s + t.settle, s + t.beat];
+
+    x.push(k(a, from - dir * SHAN_WINDUP, "out"), k(b, to + dir * SHAN_OVERSHOOT, "out"), k(c, to, "out"), k(e, to));
+    y.push(k(a, 10, "out"), k(b, -6, "out"), k(c, 0), k(e, 0));
+    scaleX.push(k(a, 1.05, "out"), k(b, 1.1, "out"), k(c, 0.97), k(e, 1));
+    scaleY.push(k(a, 0.95, "out"), k(b, 0.93, "out"), k(c, 1.03), k(e, 1));
+    body.push(
+      k(a, lean(from) - dir * 4, "out"),
+      k(b, lean(from) + dir * 12, "out"),
+      k(c, lean(to) - dir * 2),
+      k(e, lean(to)),
+    );
+    // 头往运动反方向甩（被落下），回稳时略甩过头；引擎的 LAG 会再晚几帧，正好落在闪完之后
+    head.push(k(a, 0), k(b, -dir * 8, "out"), k(c, dir * 3), k(e, 0));
+    wing.push(k(a, -4, "in"), k(b, 10, "out"), k(c, 2), k(e, 0));
+  }
+
+  return {
+    duration: (path.length - 1) * t.beat,
+    trail: true,
+    root: { x, y, scaleX, scaleY },
+    parts: {
+      body: { rotate: body },
+      head: { rotate: head },
+      leftWing: { rotate: wing },
+      rightWing: { rotate: mirror(wing) },
+    },
+  };
+};
+
+/**
+ * shanShen —— 闪身步（60 帧 = 四拍）
+ * 每拍一闪：中 → 左 → 中 → 右 → 中。蓄力 4 帧，3 帧闪到，带残影。
+ */
+const shanShen = flashSteps([0, -SHAN, 0, SHAN, 0], {
+  anticipate: 4,
+  arrive: 7,
+  settle: 11,
+  beat: 15,
+});
+
+/**
+ * lianShan —— 连闪（30 帧 = 两拍，每半拍一闪）
+ * 中 → 左 → 右 → 左 → 中，左右之间直接横穿，残影拉得最长。
+ */
+const lianShan = flashSteps([0, -SHAN, SHAN, -SHAN, 0], {
+  anticipate: 2,
+  arrive: 4,
+  settle: 6,
+  beat: 7.5,
+});
+
 // ─────────────────────────── 导出 ───────────────────────────
 
 /**
@@ -339,6 +450,9 @@ export const ACTIONS = {
   dance,
   jump,
   waddle,
+  groove,
+  shanShen,
+  lianShan,
 } satisfies Record<string, ActionDef>;
 
 export type ActionName = keyof typeof ACTIONS;

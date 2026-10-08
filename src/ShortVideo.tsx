@@ -3,26 +3,20 @@ import { AbsoluteFill } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { Goose } from "./goose/Goose";
-import { sceneFrames } from "./schema";
-import { storyboard } from "./storyboard";
+import { sceneFrames, type Storyboard } from "./schema";
 
-const TRANSITION_FRAMES = 15;
-
-// 每个场景的帧数 = 动作周期 × loops；转场会吃掉时长，总长要减掉
-export const totalFrames =
-  storyboard.scenes.reduce((sum, s) => sum + sceneFrames(s), 0) -
-  (storyboard.scenes.length - 1) * TRANSITION_FRAMES;
-
-export const ShortVideo: React.FC = () => {
+/** 按分镜串场景；transitionFrames > 0 时场景间淡入淡出，0 时硬切。 */
+export const ShortVideo: React.FC<{ storyboard: Storyboard }> = ({ storyboard }) => {
+  const { scenes, transitionFrames } = storyboard;
   return (
     <AbsoluteFill style={{ backgroundColor: "#f7f5ef" }}>
       <TransitionSeries>
-        {storyboard.scenes.map((scene, i) => (
+        {scenes.map((scene, i) => (
           <React.Fragment key={`${scene.action}-${i}`}>
-            {i > 0 && (
+            {i > 0 && transitionFrames > 0 && (
               <TransitionSeries.Transition
                 presentation={fade()}
-                timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
+                timing={linearTiming({ durationInFrames: transitionFrames })}
               />
             )}
             <TransitionSeries.Sequence durationInFrames={sceneFrames(scene)}>

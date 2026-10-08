@@ -12,7 +12,13 @@ Remotion 竖屏短片（1080×1920 @30fps）。主角是一只用四层 PNG 拼�
 | 渲染单帧看效果               | `npx remotion still <CompositionId> --frame=<n> <out.png>` |
 | 渲染成片                     | `npx remotion render GooseShort out/goose.mp4`             |
 
-Composition 列表：`GooseShort`（成片）和 `Action-<name>`（每个动作两个周期的预览，用来调参和检查循环接缝）。
+Composition 列表：`GooseShort`（成片）、`GooseShanShen`（闪身步 30 秒）和 `Action-<name>`（每个动作两个周期的预览，用来调参和检查循环接缝）。
+多个成片共用 `ShortVideo`，各自的分镜在 `storyboard.ts`，通过 `defaultProps.storyboard` 传入。
+
+macOS 15 以下 Remotion 自带的 FFmpeg 会在合成 mp4 时崩溃（帧能渲）。变通：先
+`npx remotion render <Id> out/frames --sequence --image-format=jpeg`，再用
+imageio-ffmpeg 自带的二进制 `-framerate 30 -i out/frames/element-%03d.jpeg` 合成，
+滤镜加 `scale=in_range=pc:out_range=tv,format=yuv420p`。
 
 ## 目录职责
 
@@ -40,6 +46,8 @@ public/goose/        四张分层图 + 母图，不要改
 - 角度约定：CSS 正角度 = 顺时针；leftWing 正角度 = 向外张开；rightWing 轨道一律 `mirror(leftWing 轨道)`，不要手写。
 - 位移 y 正数向下；squash = scaleX > 1 且 scaleY < 1，缩放支点是脚底 `rig.FOOT`。
 - 子部件的跟随延迟（`rig.LAG`）和拖拽（`rig.DRAG`）由引擎自动叠加，动作里不需要手工错相位。
+- 动作设 `trail: true` 时，快速横移会自动留下残影（`rig.TRAIL`），站稳后自动消失。
+- 分镜 `transitionFrames` 缺省 15 帧淡化；连续舞蹈填 0 硬切（各段整周期归零，硬切无缝）。
 
 ## 不要做
 

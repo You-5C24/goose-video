@@ -24,6 +24,11 @@ export const sceneSchema = z.object({
 
 export const storyboardSchema = z.object({
   scenes: z.array(sceneSchema).min(1),
+  /**
+   * 场景间淡入淡出的帧数，默认 15。连续舞蹈填 0 = 硬切：
+   * 每个场景都在整周期结束、姿态归零，硬切是无缝的；淡化反而会叠出两只鹅。
+   */
+  transitionFrames: z.number().int().nonnegative().default(15),
 });
 
 // 用 z.output 而不是 z.infer：loops 有 default，解析后一定存在
@@ -33,3 +38,8 @@ export type Storyboard = z.output<typeof storyboardSchema>;
 /** 一个场景实际占多少帧。 */
 export const sceneFrames = (scene: Scene): number =>
   ACTIONS[scene.action].duration * scene.loops;
+
+/** 整片帧数：各场景之和，减去转场重叠吃掉的部分。 */
+export const storyboardFrames = (sb: Storyboard): number =>
+  sb.scenes.reduce((sum, s) => sum + sceneFrames(s), 0) -
+  (sb.scenes.length - 1) * sb.transitionFrames;

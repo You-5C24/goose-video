@@ -12,7 +12,7 @@
  */
 import React from "react";
 import { Easing } from "remotion";
-import { DRAG, LAG, PARTS, type Part } from "./rig";
+import { DRAG, LAG, PARTS, TRAIL, type Part } from "./rig";
 
 // ─────────────────────────── 类型 ───────────────────────────
 
@@ -36,12 +36,14 @@ export type ChannelTracks = Partial<Record<Channel, Track>>;
  * - root：整只鹅一起动（跳跃位移、squash / stretch）。
  * - parts：各部件自己的轨道。
  * - loopable：缺省为可循环。false 表示该动作不能无缝循环，用于单向位移试验。
+ * - trail：true 时快速横移会留下残影（参数见 rig.TRAIL），用于「闪身」类动作。
  */
 export type ActionDef = {
   duration: number;
   root?: ChannelTracks;
   parts?: Partial<Record<Part, ChannelTracks>>;
   loopable?: boolean;
+  trail?: boolean;
 };
 
 /** 采样结果：一层的完整变换。 */
@@ -156,6 +158,30 @@ export const samplePose = (def: ActionDef, frame: number): Pose => {
   }
 
   return { root, parts };
+};
+
+/** 一层残影：过去某帧的姿态 + 它该画多不透明。 */
+export type Ghost = { pose: Pose; opacity: number };
+
+/**
+ * 残影：取 frame 之前每隔 TRAIL.step 帧的姿态，最多 TRAIL.count 层（由新到旧）。
+ * 不透明度 = 该层基础值（越旧越淡）× 与当前位置的水平距离占 TRAIL.fullAt 的比例，
+ * 所以只有瞬间横移时才看得见，站稳几帧后残影追上本体自动消失。
+ * 场景开头之前的帧不取（不回绕到上一个周期）。
+ */
+export const sampleTrail = (def: ActionDef, frame: number, now: Pose): Ghost[] => {
+  if (!def.trail) return [];
+  const ghosts: Ghost[] = [];
+  for (let i = 1; i <= TRAIL.count; i++) {
+    const past = frame - i * TRAIL.step;
+    if (past < 0) break;
+    const pose = samplePose(def, past);
+    const distance = Math.abs(pose.root.x - now.root.x);
+    const base = TRAIL.opacity * (1 - (i - 1) / TRAIL.count);
+    const opacity = base * Math.min(1, distance / TRAIL.fullAt);
+    if (opacity > 0.01) ghosts.push({ pose, opacity });
+  }
+  return ghosts;
 };
 
 // ─────────────────────────── 输出 ───────────────────────────
